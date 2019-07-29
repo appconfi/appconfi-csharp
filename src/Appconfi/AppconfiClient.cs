@@ -1,35 +1,52 @@
-﻿namespace Appconfi
+﻿using System;
+using System.Net.Http;
+using System.Threading.Tasks;
+
+namespace Appconfi
 {
-    using RestSharp;
 
     public class AppconfiClient
     {
-        private static string APIUri = "https://appconfi.com";
+        private static Uri APIUri = new Uri("https://appconfi.com");
 
         public AppconfiClient(
-            string applicationId, 
-            string apiKey, 
+            string applicationId,
+            string apiKey,
             string environment = "[default]")
         {
-            Api = new RestClient(APIUri);
             ApplicationId = applicationId;
             ApiKey = apiKey;
             Environment = environment;
         }
 
-        public RestRequest PrepareRequest(string resource)
+        public string PrepareRequest(string resource)
         {
-            var request = new RestRequest(resource, Method.GET);
 
-            request
-               .AddParameter("key", ApiKey)
-               .AddParameter("env", Environment)
-               .AddParameter("app", ApplicationId);
+                var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
 
-            return request;
+            queryString["key"] = ApiKey;
+            queryString["env"] = Environment;
+            queryString["app"] = ApplicationId;
+
+            return $"{resource}?{queryString.ToString()}";
         }
 
-        public RestClient Api { get; }
+        public async Task<string> ExecuteAsync(string resource)
+        {
+            using (var client = new HttpClient())
+            {
+                client.Timeout = TimeSpan.FromSeconds(30);
+                client.DefaultRequestHeaders.Add("X-Appconfi-UA", "AppConfi-Client .NET v1");
+                client.BaseAddress = APIUri;
+
+                var response = await client.GetAsync(resource);
+
+                if (!response.IsSuccessStatusCode)
+                    throw new BadRequestException(response);
+
+                return await response.Content.ReadAsStringAsync();
+            }
+        }
 
         public string ApplicationId { get; }
 

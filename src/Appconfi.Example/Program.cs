@@ -7,11 +7,18 @@
     {
         static void Main(string[] args)
         {
-            var applicationId = "application_id_here";
-            var apiKey = "application_secret_key";
+            var applicationId = "<APP-ID>";
+            var apiKey = "<API-KEY>";
             var env = "[default]";
 
-            var manager = Configuration.NewInstance(applicationId, apiKey, env, TimeSpan.FromSeconds(10));
+            var manager = Configuration.NewInstance(
+                applicationId, 
+                apiKey, 
+                env, 
+                TimeSpan.FromSeconds(10),
+                new ConsoleLogger());
+
+
             manager.StartMonitor();
 
             var task = Task.Factory.StartNew(() =>
@@ -34,6 +41,14 @@
                 Console.WriteLine($"color: {color}");
 
                 await Task.Delay(2000);
+            }
+        }
+
+        public class ConsoleLogger : ILogger
+        {
+            public void Error(Exception e)
+            {
+                Console.WriteLine(e.Message);
             }
         }
     }

@@ -17,12 +17,9 @@
             var resource = "api/v1/configurations";
             var request = client.PrepareRequest(resource);
 
-            var result = client.Api.Execute(request);
+            var result = await client.ExecuteAsync(request);
 
-            if (!result.IsSuccessful && result.StatusCode == System.Net.HttpStatusCode.BadRequest)
-                throw new BadRequestException(result);
-
-            var config = JsonConvert.DeserializeObject<ApplicationConfiguration>(result.Content);
+            var config = JsonConvert.DeserializeObject<ApplicationConfiguration>(result);
 
             return config;
         }
@@ -32,13 +29,9 @@
             var resource = "api/v1/configurations/version";
             var request = client.PrepareRequest(resource);
 
-            var result = client.Api.Execute<long>(request);
+            var result = await client.ExecuteAsync(request);
 
-            if (!result.IsSuccessful && result.StatusCode == System.Net.HttpStatusCode.BadRequest)
-                throw new BadRequestException<long>(result);
-
-
-            return result.Data.ToString();
+            return result;
         }
     }
 }

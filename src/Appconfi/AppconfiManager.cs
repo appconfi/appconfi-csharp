@@ -15,7 +15,7 @@
 
         readonly CancellationTokenSource cts = new CancellationTokenSource();
         Task monitoringTask;
-        readonly TimeSpan _interval;
+        readonly TimeSpan interval;
 
         readonly SemaphoreSlim timerSemaphore = new SemaphoreSlim(1);
         readonly ReaderWriterLockSlim cacheLock = new ReaderWriterLockSlim();
@@ -26,18 +26,34 @@
 
         Func<string, string> getLocalSetting;
         Func<string, bool> getLocalToggle;
-
+        private readonly ILogger logger;
         string currentVersion;
+
+        public AppconfiManager(
+           IConfigurationStore store,
+           TimeSpan interval,
+           Func<string, string> getLocalSetting,
+           Func<string, bool> getLocalToggle,
+           ILogger logger
+          ) 
+        {
+            this.logger = logger;
+            this.getLocalSetting = getLocalSetting;
+            this.getLocalToggle = getLocalToggle;
+            this.store = store;
+            this.interval = interval;
+            changed = new Subject<KeyValuePair<string, string>>();
+
+            CheckForConfigurationChangesAsync().Wait();
+        }
 
         public AppconfiManager(
             IConfigurationStore store,
             TimeSpan interval,
             Func<string, string> getLocalSetting,
             Func<string, bool> getLocalToggle
-           ) : this(store, interval)
+           ) : this(store, interval, getLocalSetting, getLocalToggle, null)
         {
-            this.getLocalSetting = getLocalSetting;
-            this.getLocalToggle = getLocalToggle;
         }
 
         public AppconfiManager(
@@ -48,12 +64,9 @@
 
         public AppconfiManager(
             IConfigurationStore store,
-            TimeSpan interval)
+            TimeSpan interval): this(store,interval,null, null,null)
         {
-            this.store = store;
-            _interval = interval;
-            CheckForConfigurationChangesAsync().Wait();
-            changed = new Subject<KeyValuePair<string, string>>();
+            
         }
 
         public IObservable<KeyValuePair<string, string>> Changed => this.changed.AsObservable();
@@ -101,7 +114,7 @@
             while (!cts.Token.IsCancellationRequested)
             {
                 await CheckForConfigurationChangesAsync();
-                await Task.Delay(this._interval, cts.Token);
+                await Task.Delay(this.interval, cts.Token);
             }
         }
 
@@ -218,43 +231,56 @@
             return true;
         }
 
-        private async Task CheckForConfigurationChangesAsync()
+        public async Task ForceRefreshAsync()
         {
-            var latestVersion = await store.GetVersionAsync();
-
-            // If the versions are the same, nothing has changed in the configuration.
-            if (currentVersion == latestVersion) return;
-
-            // Get the latest settings from the settings store and publish changes.
-            var latestConfiguration = await store.GetConfigurationAsync();
-
-            // Refresh the settings cache.
-            try
-            {
-                cacheLock.EnterWriteLock();
-
-                if (settingsCache != null)
-                {
-                    //Notify settings changed
-                    latestConfiguration.Settings.Except(settingsCache).ToList().ForEach(kv => changed.OnNext(kv));
-                }
-                settingsCache = latestConfiguration?.Settings;
-
-                if (togglesCache != null)
-                {
-                    //Notify settings changed
-                    latestConfiguration.Toggles.Except(togglesCache).ToList().ForEach(kv => changed.OnNext(kv));
-                }
-                togglesCache = latestConfiguration?.Toggles;
-            }
-            finally
-            {
-                cacheLock.ExitWriteLock();
-            }
-            // Update the current version.
-            currentVersion = latestVersion;
+            await CheckForConfigurationChangesAsync();
         }
 
+        private async Task CheckForConfigurationChangesAsync()
+        {
+            try
+            {
+                var latestVersion = await store.GetVersionAsync();
+
+                // If the versions are the same, nothing has changed in the configuration.
+                if (currentVersion == latestVersion) return;
+
+                // Get the latest settings from the settings store and publish changes.
+                var latestConfiguration = await store.GetConfigurationAsync();
+
+                // Refresh the settings cache.
+                try
+                {
+                    cacheLock.EnterWriteLock();
+
+                    if (settingsCache != null)
+                    {
+                        //Notify settings changed
+                        latestConfiguration.Settings.Except(settingsCache).ToList().ForEach(kv => changed.OnNext(kv));
+                    }
+                    settingsCache = latestConfiguration?.Settings;
+
+                    if (togglesCache != null)
+                    {
+                        //Notify settings changed
+                        latestConfiguration.Toggles.Except(togglesCache).ToList().ForEach(kv => changed.OnNext(kv));
+                    }
+                    togglesCache = latestConfiguration?.Toggles;
+                }
+                finally
+                {
+                    cacheLock.ExitWriteLock();
+                }
+                // Update the current version.
+                currentVersion = latestVersion;
+
+            }
+            catch(Exception e)
+            {
+                if (logger != null)
+                    logger.Error(e);
+            }
+        }
 
     }
 }
