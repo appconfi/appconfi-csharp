@@ -1,0 +1,21 @@
+﻿@model IFeatureManager
+@{
+    ViewBag.Title = "Appconfi";
+}
+
+<h2>Hello Appconfi</h2>
+
+
+@if (Model.IsEnable("my_awesome_feature"))
+{
+    <p>"My my_awesome_feature is enabled"</p>
+}
+else
+{
+    <p>"My my_awesome_feature is disabled"</p>
+}
+
+
+
+
+

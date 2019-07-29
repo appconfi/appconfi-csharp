@@ -12,24 +12,24 @@
             this.client = client;
         }
 
-        public async Task<ApplicationConfiguration> GetConfigurationAsync()
+        public ApplicationConfiguration GetConfiguration()
         {
             var resource = "api/v1/configurations";
             var request = client.PrepareRequest(resource);
 
-            var result = await client.ExecuteAsync(request);
+            var result = client.Execute(request);
 
             var config = JsonConvert.DeserializeObject<ApplicationConfiguration>(result);
 
             return config;
         }
 
-        public async Task<string> GetVersionAsync()
+        public string GetVersion()
         {
             var resource = "api/v1/configurations/version";
             var request = client.PrepareRequest(resource);
 
-            var result = await client.ExecuteAsync(request);
+            var result = client.Execute(request);
 
             return result;
         }

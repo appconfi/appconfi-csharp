@@ -22,7 +22,7 @@ namespace Appconfi
         public string PrepareRequest(string resource)
         {
 
-                var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
+            var queryString = System.Web.HttpUtility.ParseQueryString(string.Empty);
 
             queryString["key"] = ApiKey;
             queryString["env"] = Environment;
@@ -45,6 +45,23 @@ namespace Appconfi
                     throw new BadRequestException(response);
 
                 return await response.Content.ReadAsStringAsync();
+            }
+        }
+
+        public string Execute(string resource)
+        {
+            using (var client = new HttpClient())
+            {
+                client.Timeout = TimeSpan.FromSeconds(30);
+                client.DefaultRequestHeaders.Add("X-Appconfi-UA", "AppConfi-Client .NET v1");
+                client.BaseAddress = APIUri;
+
+                var response = client.GetAsync(resource).Result;
+
+                if (!response.IsSuccessStatusCode)
+                    throw new BadRequestException(response);
+
+                return response.Content.ReadAsStringAsync().Result;
             }
         }
 

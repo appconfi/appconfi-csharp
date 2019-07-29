@@ -7,16 +7,15 @@
     {
         static void Main(string[] args)
         {
-            var applicationId = "<APP-ID>";
-            var apiKey = "<API-KEY>";
+            var applicationId = "dc97d669-1460-4602-8ae3-2a35b2708df7";
+            var apiKey = "a7822a44-af94-4f0c-9337-7c31f2fe33af";
             var env = "[default]";
 
             var manager = Configuration.NewInstance(
                 applicationId, 
                 apiKey, 
                 env, 
-                TimeSpan.FromSeconds(10),
-                new ConsoleLogger());
+                TimeSpan.FromSeconds(10));
 
 
             manager.StartMonitor();
@@ -40,15 +39,7 @@
                 Console.WriteLine($"is_enabled: {status.ToString().ToLower()}");
                 Console.WriteLine($"color: {color}");
 
-                await Task.Delay(2000);
-            }
-        }
-
-        public class ConsoleLogger : ILogger
-        {
-            public void Error(Exception e)
-            {
-                Console.WriteLine(e.Message);
+                await Task.Delay(10000);
             }
         }
     }

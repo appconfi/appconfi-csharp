@@ -3,15 +3,12 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reactive.Linq;
-    using System.Reactive.Subjects;
     using System.Threading;
     using System.Threading.Tasks;
 
     public class AppconfiManager : IDisposable, IConfigurationManager
     {
         private readonly IConfigurationStore store;
-        readonly ISubject<KeyValuePair<string, string>> changed;
 
         readonly CancellationTokenSource cts = new CancellationTokenSource();
         Task monitoringTask;
@@ -28,6 +25,7 @@
         Func<string, bool> getLocalToggle;
         private readonly ILogger logger;
         string currentVersion;
+        public Action<KeyValuePair<string,string>> OnChange;
 
         public AppconfiManager(
            IConfigurationStore store,
@@ -42,9 +40,6 @@
             this.getLocalToggle = getLocalToggle;
             this.store = store;
             this.interval = interval;
-            changed = new Subject<KeyValuePair<string, string>>();
-
-            CheckForConfigurationChangesAsync().Wait();
         }
 
         public AppconfiManager(
@@ -68,8 +63,6 @@
         {
             
         }
-
-        public IObservable<KeyValuePair<string, string>> Changed => this.changed.AsObservable();
 
         /// <summary>
         /// Check to see if the current instance is monitoring for changes
@@ -113,8 +106,8 @@
         {
             while (!cts.Token.IsCancellationRequested)
             {
-                await CheckForConfigurationChangesAsync();
-                await Task.Delay(this.interval, cts.Token);
+                CheckForConfigurationChanges();
+                await Task.Delay(interval, cts.Token);
             }
         }
 
@@ -154,21 +147,24 @@
         /// <summary>
         /// Retrieve application setting from the local cache. Cloud configuration override local cache
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="setting"></param>
         /// <returns></returns>
-        public string GetSetting(string key)
+        public string GetSetting(string setting)
         {
-            if (string.IsNullOrEmpty(key))
-                throw new ArgumentNullException(nameof(key), "Value cannot be null or empty.");
+            if (currentVersion == null)
+                CheckForConfigurationChanges();
+
+            if (string.IsNullOrEmpty(setting))
+                throw new ArgumentNullException(nameof(setting), "Value cannot be null or empty.");
 
             string value;
             try
             {
                 cacheLock.EnterReadLock();
 
-                if (settingsCache == null || !settingsCache.TryGetValue(key, out value))
+                if (settingsCache == null || !settingsCache.TryGetValue(setting, out value))
                 {
-                    TryGetSettingValueFromLocal(key, out value);
+                    TryGetSettingValueFromLocal(setting, out value);
                 }
             }
             finally
@@ -182,12 +178,15 @@
         /// <summary>
         /// Retrieve application feature toggle from the local cache.
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="feature"></param>
         /// <returns></returns>
-        public bool IsFeatureEnabled(string key)
+        public bool IsFeatureEnabled(string feature)
         {
-            if (string.IsNullOrEmpty(key))
-                throw new ArgumentNullException(nameof(key), "Value cannot be null or empty.");
+            if (currentVersion == null)
+                CheckForConfigurationChanges();
+
+            if (string.IsNullOrEmpty(feature))
+                throw new ArgumentNullException(nameof(feature), "Value cannot be null or empty.");
 
             bool value = false;
 
@@ -195,10 +194,10 @@
             {
                 cacheLock.EnterReadLock();
 
-                if (togglesCache != null && togglesCache.TryGetValue(key, out string sv))
+                if (togglesCache != null && togglesCache.TryGetValue(feature, out string sv))
                     value = sv == "on";
                 else
-                    TryGetToggleValueFromLocal(key, out value);
+                    TryGetToggleValueFromLocal(feature, out value);
             }
             finally
             {
@@ -231,22 +230,30 @@
             return true;
         }
 
-        public async Task ForceRefreshAsync()
+        private void KeyValueChange(KeyValuePair<string,string> keyValue)
         {
-            await CheckForConfigurationChangesAsync();
+            if (OnChange == null)
+                return;
+
+            OnChange(keyValue);
         }
 
-        private async Task CheckForConfigurationChangesAsync()
+        public void ForceRefresh()
+        {
+           CheckForConfigurationChanges();
+        }
+
+        private void CheckForConfigurationChanges()
         {
             try
             {
-                var latestVersion = await store.GetVersionAsync();
+                var latestVersion =  store.GetVersion();
 
                 // If the versions are the same, nothing has changed in the configuration.
                 if (currentVersion == latestVersion) return;
 
                 // Get the latest settings from the settings store and publish changes.
-                var latestConfiguration = await store.GetConfigurationAsync();
+                var latestConfiguration = store.GetConfiguration();
 
                 // Refresh the settings cache.
                 try
@@ -256,14 +263,14 @@
                     if (settingsCache != null)
                     {
                         //Notify settings changed
-                        latestConfiguration.Settings.Except(settingsCache).ToList().ForEach(kv => changed.OnNext(kv));
+                        latestConfiguration.Settings.Except(settingsCache).ToList().ForEach(kv => KeyValueChange(kv));
                     }
                     settingsCache = latestConfiguration?.Settings;
 
                     if (togglesCache != null)
                     {
                         //Notify settings changed
-                        latestConfiguration.Toggles.Except(togglesCache).ToList().ForEach(kv => changed.OnNext(kv));
+                        latestConfiguration.Toggles.Except(togglesCache).ToList().ForEach(kv => KeyValueChange(kv));
                     }
                     togglesCache = latestConfiguration?.Toggles;
                 }
