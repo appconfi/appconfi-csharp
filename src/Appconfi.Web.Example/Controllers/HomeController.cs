@@ -13,7 +13,9 @@ namespace Appconfi.Web.Example.Controllers
 
         public ActionResult Index()
         {
-            return View(Manager);
+            var isFeatureEnable = Manager.IsEnable("my_awesome_feature");
+            ViewBag.FeatureEnable = isFeatureEnable;
+            return View();
         }
     }
 }
