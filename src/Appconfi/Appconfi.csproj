@@ -3,13 +3,15 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
 	<PackageId>Appconfi</PackageId>
-	<Version>1.0.1</Version>
+	<Version>1.0.2</Version>
 	<Authors>Appconfi's Team</Authors>
 	<Company>Appconfi</Company>
 	<RepositoryUrl>https://github.com/appconfi/appconfi-csharp</RepositoryUrl>
 	<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 	<Copyright>Copyright © Appconfi 2019</Copyright> 
 	<PackageReleaseNotes>
+		Version 1.0.2
+		* Remove NewtonSoft
 		Version 1.0.1
 		* Implement Force Refresh
 		Version 1.0.0	
