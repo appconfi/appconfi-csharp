@@ -14,7 +14,7 @@ More info is available on [nuget](https://www.nuget.org/packages/Appconfi/)
 
 In order to use the Appconfi you will need to [create an account](https://appconfi.com/account/register).
 
-From there you can create your first application and setup your configuration. To use the Appconfi API to access your configuration go to `/accesskeys` there you can find the `application_id` and your `application_secret`.
+From there you can create your first application and setup your configuration. To use the Appconfi API to access your configuration go to `/accesskeys` there you can find the `application_id` and your `application_key`.
 
 ## How to use
 
@@ -25,11 +25,9 @@ var manager = Configuration.NewInstance(applicationId, apiKey);
 //Start monitoring changes in your application settings and features toggles.
 manager.StartMonitor();
 
-//Access your application settings
-var color = manager.GetSetting("application.color");
+var setting = manager.GetSetting("my_good_setting");
 
-//Check if your feature toggles are enable
-var status = manager.IsFeatureEnabled("you.feature");
+var isFeatureEnabled = manager.IsFeatureEnabled("my_awesome_feature");
 
 ```
 
@@ -39,7 +37,7 @@ Change your environments:
 
 ```csharp
 var env = "PRODUCTION";
-var refreshInterval =  TimeSpan.FromSeconds(10);
+var refreshInterval =  TimeSpan.FromMinutes(1);
 var manager = Configuration.NewInstance(applicationId, apiKey, env, refreshInterval);
 ```
 
