@@ -7,7 +7,7 @@
     {
         static void Main(string[] args)
         {
-            var applicationId = "dc97d669-1460-4602-8ae3-2a35b2708df7";
+            var applicationId = "dc97d669-1460-4602-8ae3-2a35b2708df71";
             var apiKey = "a7822a44-af94-4f0c-9337-7c31f2fe33af";
             var env = "[default]";
 
@@ -15,7 +15,7 @@
                 applicationId, 
                 apiKey, 
                 env, 
-                TimeSpan.FromSeconds(10));
+                TimeSpan.FromMinutes(1), logger: new MyLogger());
 
 
             manager.StartMonitor();
@@ -40,6 +40,14 @@
                 Console.WriteLine($"color: {color}");
 
                 await Task.Delay(10000);
+            }
+        }
+
+        public class MyLogger : ILogger
+        {
+            public void Error(Exception e)
+            {
+                Console.WriteLine(e.Message);
             }
         }
     }

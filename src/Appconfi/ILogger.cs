@@ -1,5 +1,4 @@
-﻿
-namespace Appconfi
+﻿namespace Appconfi
 {
     using System;
 

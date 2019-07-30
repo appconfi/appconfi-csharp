@@ -27,8 +27,8 @@
             ILogger logger = null
             )
         {
-            if (updateInterval < TimeSpan.FromSeconds(10))
-                throw new ArgumentOutOfRangeException("The update interval should be more than 10 second");
+            if (updateInterval < TimeSpan.FromMinutes(1))
+                throw new ArgumentOutOfRangeException("The update interval should be more than 1 minute");
 
             var client = new AppconfiClient(applicationId, apiKey, environmentName);
             var store = new ConfigurationStore(client);

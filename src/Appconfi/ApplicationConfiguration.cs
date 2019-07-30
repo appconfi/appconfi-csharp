@@ -10,7 +10,6 @@
         public IDictionary<string,string> Settings { get; set; }
 
         [DataMember(Name = "toggles")]
-
         public IDictionary<string,string> Toggles { get; set; }
     }
 

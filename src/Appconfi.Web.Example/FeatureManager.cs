@@ -14,7 +14,7 @@ namespace Appconfi.Web.Example
                applicationId,
                apiKey,
                env,
-               TimeSpan.FromSeconds(10));
+               TimeSpan.FromMinutes(1));
 
            manager.StartMonitor();
 

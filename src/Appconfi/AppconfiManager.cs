@@ -2,17 +2,13 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Threading;
-    using System.Threading.Tasks;
 
     public class AppconfiManager : IDisposable, IConfigurationManager
     {
         private readonly IConfigurationStore store;
-
-        readonly CancellationTokenSource cts = new CancellationTokenSource();
-        Task monitoringTask;
         readonly TimeSpan interval;
+        private bool monitoring;
 
         readonly SemaphoreSlim timerSemaphore = new SemaphoreSlim(1);
         readonly ReaderWriterLockSlim cacheLock = new ReaderWriterLockSlim();
@@ -25,7 +21,7 @@
         Func<string, bool> getLocalToggle;
         private readonly ILogger logger;
         string currentVersion;
-        public Action<KeyValuePair<string,string>> OnChange;
+        DateTime lastTimeUpdated;
 
         public AppconfiManager(
            IConfigurationStore store,
@@ -67,21 +63,21 @@
         /// <summary>
         /// Check to see if the current instance is monitoring for changes
         /// </summary>
-        public bool IsMonitoring => this.monitoringTask != null && !this.monitoringTask.IsCompleted;
+        public bool IsMonitoring => monitoring;
 
         /// <summary>
         /// Start the background monitoring for configuration changes in the central store
         /// </summary>
         public void StartMonitor()
         {
-            if (this.IsMonitoring)
+            if (IsMonitoring)
             {
                 return;
             }
 
             try
             {
-                this.timerSemaphore.Wait();
+                timerSemaphore.Wait();
 
                 //Check again to make sure we are not already running.
                 if (this.IsMonitoring)
@@ -89,25 +85,11 @@
                     return;
                 }
 
-                //Start running our task loop.
-                this.monitoringTask = ConfigChangeMonitor();
+                monitoring = true;
             }
             finally
             {
-                this.timerSemaphore.Release();
-            }
-        }
-
-        /// <summary>
-        /// Loop that monitors for configuration changes
-        /// </summary>
-        /// <returns></returns>
-        public async Task ConfigChangeMonitor()
-        {
-            while (!cts.Token.IsCancellationRequested)
-            {
-                CheckForConfigurationChanges();
-                await Task.Delay(interval, cts.Token);
+                timerSemaphore.Release();
             }
         }
 
@@ -118,30 +100,21 @@
         {
             try
             {
-                this.timerSemaphore.Wait();
+                timerSemaphore.Wait();
 
-                //Signal the task to stop
-                this.cts.Cancel();
-
-                //Wait for the loop to stop
-                if (!monitoringTask.IsCanceled)
-                    this.monitoringTask.Wait();
-
-                this.monitoringTask = null;
+                monitoring = false;
             }
             finally
             {
-                this.timerSemaphore.Release();
+                timerSemaphore.Release();
             }
         }
 
         public void Dispose()
         {
-            this.cts.Cancel();
             timerSemaphore.Dispose();
             cacheLock.Dispose();
             syncCacheSemaphore.Dispose();
-            cts.Dispose();
         }
 
         /// <summary>
@@ -151,8 +124,7 @@
         /// <returns></returns>
         public string GetSetting(string setting)
         {
-            if (currentVersion == null)
-                CheckForConfigurationChanges();
+            CheckForConfigurationChanges();
 
             if (string.IsNullOrEmpty(setting))
                 throw new ArgumentNullException(nameof(setting), "Value cannot be null or empty.");
@@ -182,8 +154,7 @@
         /// <returns></returns>
         public bool IsFeatureEnabled(string feature)
         {
-            if (currentVersion == null)
-                CheckForConfigurationChanges();
+            CheckForConfigurationChanges();
 
             if (string.IsNullOrEmpty(feature))
                 throw new ArgumentNullException(nameof(feature), "Value cannot be null or empty.");
@@ -230,24 +201,25 @@
             return true;
         }
 
-        private void KeyValueChange(KeyValuePair<string,string> keyValue)
-        {
-            if (OnChange == null)
-                return;
-
-            OnChange(keyValue);
-        }
-
         public void ForceRefresh()
         {
-           CheckForConfigurationChanges();
+           CheckForConfigurationChanges(forceRefresh: true);
         }
 
-        private void CheckForConfigurationChanges()
+        private void CheckForConfigurationChanges(bool forceRefresh = false)
         {
             try
             {
+                //Is not is monitoring changes exit
+                if (!IsMonitoring && currentVersion != null)
+                    return;
+
+                //If the cache is still good 
+                if (!forceRefresh && DateTime.UtcNow.Add(-interval) < lastTimeUpdated)
+                    return;
+                
                 var latestVersion =  store.GetVersion();
+                lastTimeUpdated = DateTime.UtcNow;
 
                 // If the versions are the same, nothing has changed in the configuration.
                 if (currentVersion == latestVersion) return;
@@ -260,18 +232,8 @@
                 {
                     cacheLock.EnterWriteLock();
 
-                    if (settingsCache != null)
-                    {
-                        //Notify settings changed
-                        latestConfiguration.Settings.Except(settingsCache).ToList().ForEach(kv => KeyValueChange(kv));
-                    }
                     settingsCache = latestConfiguration?.Settings;
-
-                    if (togglesCache != null)
-                    {
-                        //Notify settings changed
-                        latestConfiguration.Toggles.Except(togglesCache).ToList().ForEach(kv => KeyValueChange(kv));
-                    }
+                    
                     togglesCache = latestConfiguration?.Toggles;
                 }
                 finally
