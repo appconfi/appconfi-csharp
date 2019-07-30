@@ -1,7 +1,8 @@
 ﻿namespace Appconfi
 {
-    using Newtonsoft.Json;
-    using System.Threading.Tasks;
+    using System.IO;
+    using System.Runtime.Serialization.Json;
+    using System.Text;
 
     public class ConfigurationStore : IConfigurationStore
     {
@@ -12,33 +13,40 @@
             this.client = client;
         }
 
-        public async Task<ApplicationConfiguration> GetConfigurationAsync()
+        public ApplicationConfiguration GetConfiguration()
         {
             var resource = "api/v1/configurations";
             var request = client.PrepareRequest(resource);
 
-            var result = client.Api.Execute(request);
-
-            if (!result.IsSuccessful && result.StatusCode == System.Net.HttpStatusCode.BadRequest)
-                throw new BadRequestException(result);
-
-            var config = JsonConvert.DeserializeObject<ApplicationConfiguration>(result.Content);
+            var result = client.Execute(request);
+            var config = DeserializeConfiguration(result);
 
             return config;
         }
 
-        public async Task<string> GetVersionAsync()
+        ApplicationConfiguration DeserializeConfiguration(string json)
+        {
+            var contract = new ApplicationConfiguration();
+            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(json)))
+            {
+                var ser = new DataContractJsonSerializer(contract.GetType(), new DataContractJsonSerializerSettings()
+                {
+                    UseSimpleDictionaryFormat = true
+                });
+                contract = ser.ReadObject(ms) as ApplicationConfiguration;
+            }
+
+            return contract;
+        }
+
+        public string GetVersion()
         {
             var resource = "api/v1/configurations/version";
             var request = client.PrepareRequest(resource);
 
-            var result = client.Api.Execute<long>(request);
+            var result = client.Execute(request);
 
-            if (!result.IsSuccessful && result.StatusCode == System.Net.HttpStatusCode.BadRequest)
-                throw new BadRequestException<long>(result);
-
-
-            return result.Data.ToString();
+            return result;
         }
     }
 }

@@ -2,20 +2,13 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
-    using System.Reactive.Linq;
-    using System.Reactive.Subjects;
     using System.Threading;
-    using System.Threading.Tasks;
 
     public class AppconfiManager : IDisposable, IConfigurationManager
     {
         private readonly IConfigurationStore store;
-        readonly ISubject<KeyValuePair<string, string>> changed;
-
-        readonly CancellationTokenSource cts = new CancellationTokenSource();
-        Task monitoringTask;
-        readonly TimeSpan _interval;
+        readonly TimeSpan interval;
+        private bool monitoring;
 
         readonly SemaphoreSlim timerSemaphore = new SemaphoreSlim(1);
         readonly ReaderWriterLockSlim cacheLock = new ReaderWriterLockSlim();
@@ -26,18 +19,32 @@
 
         Func<string, string> getLocalSetting;
         Func<string, bool> getLocalToggle;
-
+        private readonly ILogger logger;
         string currentVersion;
+        DateTime lastTimeUpdated;
+
+        public AppconfiManager(
+           IConfigurationStore store,
+           TimeSpan interval,
+           Func<string, string> getLocalSetting,
+           Func<string, bool> getLocalToggle,
+           ILogger logger
+          ) 
+        {
+            this.logger = logger;
+            this.getLocalSetting = getLocalSetting;
+            this.getLocalToggle = getLocalToggle;
+            this.store = store;
+            this.interval = interval;
+        }
 
         public AppconfiManager(
             IConfigurationStore store,
             TimeSpan interval,
             Func<string, string> getLocalSetting,
             Func<string, bool> getLocalToggle
-           ) : this(store, interval)
+           ) : this(store, interval, getLocalSetting, getLocalToggle, null)
         {
-            this.getLocalSetting = getLocalSetting;
-            this.getLocalToggle = getLocalToggle;
         }
 
         public AppconfiManager(
@@ -48,34 +55,29 @@
 
         public AppconfiManager(
             IConfigurationStore store,
-            TimeSpan interval)
+            TimeSpan interval): this(store,interval,null, null,null)
         {
-            this.store = store;
-            _interval = interval;
-            CheckForConfigurationChangesAsync().Wait();
-            changed = new Subject<KeyValuePair<string, string>>();
+            
         }
-
-        public IObservable<KeyValuePair<string, string>> Changed => this.changed.AsObservable();
 
         /// <summary>
         /// Check to see if the current instance is monitoring for changes
         /// </summary>
-        public bool IsMonitoring => this.monitoringTask != null && !this.monitoringTask.IsCompleted;
+        public bool IsMonitoring => monitoring;
 
         /// <summary>
         /// Start the background monitoring for configuration changes in the central store
         /// </summary>
         public void StartMonitor()
         {
-            if (this.IsMonitoring)
+            if (IsMonitoring)
             {
                 return;
             }
 
             try
             {
-                this.timerSemaphore.Wait();
+                timerSemaphore.Wait();
 
                 //Check again to make sure we are not already running.
                 if (this.IsMonitoring)
@@ -83,25 +85,11 @@
                     return;
                 }
 
-                //Start running our task loop.
-                this.monitoringTask = ConfigChangeMonitor();
+                monitoring = true;
             }
             finally
             {
-                this.timerSemaphore.Release();
-            }
-        }
-
-        /// <summary>
-        /// Loop that monitors for configuration changes
-        /// </summary>
-        /// <returns></returns>
-        public async Task ConfigChangeMonitor()
-        {
-            while (!cts.Token.IsCancellationRequested)
-            {
-                await CheckForConfigurationChangesAsync();
-                await Task.Delay(this._interval, cts.Token);
+                timerSemaphore.Release();
             }
         }
 
@@ -112,50 +100,43 @@
         {
             try
             {
-                this.timerSemaphore.Wait();
+                timerSemaphore.Wait();
 
-                //Signal the task to stop
-                this.cts.Cancel();
-
-                //Wait for the loop to stop
-                if (!monitoringTask.IsCanceled)
-                    this.monitoringTask.Wait();
-
-                this.monitoringTask = null;
+                monitoring = false;
             }
             finally
             {
-                this.timerSemaphore.Release();
+                timerSemaphore.Release();
             }
         }
 
         public void Dispose()
         {
-            this.cts.Cancel();
             timerSemaphore.Dispose();
             cacheLock.Dispose();
             syncCacheSemaphore.Dispose();
-            cts.Dispose();
         }
 
         /// <summary>
         /// Retrieve application setting from the local cache. Cloud configuration override local cache
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="setting"></param>
         /// <returns></returns>
-        public string GetSetting(string key)
+        public string GetSetting(string setting)
         {
-            if (string.IsNullOrEmpty(key))
-                throw new ArgumentNullException(nameof(key), "Value cannot be null or empty.");
+            CheckForConfigurationChanges();
+
+            if (string.IsNullOrEmpty(setting))
+                throw new ArgumentNullException(nameof(setting), "Value cannot be null or empty.");
 
             string value;
             try
             {
                 cacheLock.EnterReadLock();
 
-                if (settingsCache == null || !settingsCache.TryGetValue(key, out value))
+                if (settingsCache == null || !settingsCache.TryGetValue(setting, out value))
                 {
-                    TryGetSettingValueFromLocal(key, out value);
+                    TryGetSettingValueFromLocal(setting, out value);
                 }
             }
             finally
@@ -169,12 +150,14 @@
         /// <summary>
         /// Retrieve application feature toggle from the local cache.
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="feature"></param>
         /// <returns></returns>
-        public bool IsFeatureEnabled(string key)
+        public bool IsFeatureEnabled(string feature)
         {
-            if (string.IsNullOrEmpty(key))
-                throw new ArgumentNullException(nameof(key), "Value cannot be null or empty.");
+            CheckForConfigurationChanges();
+
+            if (string.IsNullOrEmpty(feature))
+                throw new ArgumentNullException(nameof(feature), "Value cannot be null or empty.");
 
             bool value = false;
 
@@ -182,10 +165,10 @@
             {
                 cacheLock.EnterReadLock();
 
-                if (togglesCache != null && togglesCache.TryGetValue(key, out string sv))
+                if (togglesCache != null && togglesCache.TryGetValue(feature, out string sv))
                     value = sv == "on";
                 else
-                    TryGetToggleValueFromLocal(key, out value);
+                    TryGetToggleValueFromLocal(feature, out value);
             }
             finally
             {
@@ -218,43 +201,55 @@
             return true;
         }
 
-        private async Task CheckForConfigurationChangesAsync()
+        public void ForceRefresh()
         {
-            var latestVersion = await store.GetVersionAsync();
-
-            // If the versions are the same, nothing has changed in the configuration.
-            if (currentVersion == latestVersion) return;
-
-            // Get the latest settings from the settings store and publish changes.
-            var latestConfiguration = await store.GetConfigurationAsync();
-
-            // Refresh the settings cache.
-            try
-            {
-                cacheLock.EnterWriteLock();
-
-                if (settingsCache != null)
-                {
-                    //Notify settings changed
-                    latestConfiguration.Settings.Except(settingsCache).ToList().ForEach(kv => changed.OnNext(kv));
-                }
-                settingsCache = latestConfiguration?.Settings;
-
-                if (togglesCache != null)
-                {
-                    //Notify settings changed
-                    latestConfiguration.Toggles.Except(togglesCache).ToList().ForEach(kv => changed.OnNext(kv));
-                }
-                togglesCache = latestConfiguration?.Toggles;
-            }
-            finally
-            {
-                cacheLock.ExitWriteLock();
-            }
-            // Update the current version.
-            currentVersion = latestVersion;
+           CheckForConfigurationChanges(forceRefresh: true);
         }
 
+        private void CheckForConfigurationChanges(bool forceRefresh = false)
+        {
+            try
+            {
+                //Is not is monitoring changes exit
+                if (!IsMonitoring && currentVersion != null)
+                    return;
+
+                //If the cache is still good 
+                if (!forceRefresh && DateTime.UtcNow.Add(-interval) < lastTimeUpdated)
+                    return;
+                
+                var latestVersion =  store.GetVersion();
+                lastTimeUpdated = DateTime.UtcNow;
+
+                // If the versions are the same, nothing has changed in the configuration.
+                if (currentVersion == latestVersion) return;
+
+                // Get the latest settings from the settings store and publish changes.
+                var latestConfiguration = store.GetConfiguration();
+
+                // Refresh the settings cache.
+                try
+                {
+                    cacheLock.EnterWriteLock();
+
+                    settingsCache = latestConfiguration?.Settings;
+                    
+                    togglesCache = latestConfiguration?.Toggles;
+                }
+                finally
+                {
+                    cacheLock.ExitWriteLock();
+                }
+                // Update the current version.
+                currentVersion = latestVersion;
+
+            }
+            catch(Exception e)
+            {
+                if (logger != null)
+                    logger.Error(e);
+            }
+        }
 
     }
 }

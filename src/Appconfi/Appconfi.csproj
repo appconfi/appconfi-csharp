@@ -1,14 +1,28 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
+	<PackageId>Appconfi</PackageId>
+	<Version>1.0.2</Version>
+	<Authors>Appconfi's Team</Authors>
+	<Company>Appconfi</Company>
+	<RepositoryUrl>https://github.com/appconfi/appconfi-csharp</RepositoryUrl>
+	<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+	<Copyright>Copyright © Appconfi 2019</Copyright> 
+	<PackageReleaseNotes>
+		Version 1.0.2
+		* Remove NewtonSoft
+		Version 1.0.1
+		* Implement Force Refresh
+		Version 1.0.0	
+		* Initial release
+	 </PackageReleaseNotes>  
+	<PackageTags>appconfi config configuration cloudconfiguration appconficlient featureflags featuretoggle featureswitch</PackageTags>    
+    <Description>With Appconfi you can instantly change an application setting without introducing any latency to your site. Is as a configuration service that lets you manage your features and configurations without actually deploying new code.</Description>   	 
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager" Version="3.2.3" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
-    <PackageReference Include="RestSharp" Version="106.6.9" />
-    <PackageReference Include="System.Reactive.Linq" Version="4.1.5" />
+	<None Include="LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)" />
   </ItemGroup>
 
 </Project>

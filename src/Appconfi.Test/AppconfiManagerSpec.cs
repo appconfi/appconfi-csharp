@@ -42,16 +42,57 @@ namespace Appconfi.Test
             };
 
             //Given a version
-            configurationStoreMock.Setup(x => x.GetVersionAsync()).Returns(Task.FromResult("1"));
-            
+            configurationStoreMock.Setup(x => x.GetVersion()).Returns("1");
+
             //And given a valid configuration
-            configurationStoreMock.Setup(x => x.GetConfigurationAsync()).Returns(Task.FromResult(configuration));
+            configurationStoreMock.Setup(x => x.GetConfiguration()).Returns(configuration);
 
             var manager = new AppconfiManager(configurationStoreMock.Object);
             var value = manager.GetSetting("setting");
 
             Assert.AreEqual("value", value);
 
+        }
+
+        [TestMethod]
+        public void AppconfiManager_ForceRefresh_GetSetting_AskForNewVersion()
+        {
+            var configurationStoreMock = new Mock<IConfigurationStore>();
+            var configuration = new ApplicationConfiguration
+            {
+                Settings = new Dictionary<string, string> { { "setting", "value" } }
+            };
+
+            var manager = new AppconfiManager(configurationStoreMock.Object);
+
+            manager.ForceRefresh();
+
+            configurationStoreMock.Verify(x => x.GetVersion(), Times.Once);
+
+        }
+
+
+        [TestMethod]
+        public void AppconfiManager_StartMonitoring_IsMonitoring_ReturnTrue()
+        {
+            var configurationStoreMock = new Mock<IConfigurationStore>();
+            var manager = new AppconfiManager(configurationStoreMock.Object);
+
+            manager.StartMonitor();
+
+            Assert.IsTrue(manager.IsMonitoring);
+        }
+
+        [TestMethod]
+        public void AppconfiManager_StopMonitoring_IsMonitoring_ReturnFalse()
+        {
+            var configurationStoreMock = new Mock<IConfigurationStore>();
+            var manager = new AppconfiManager(configurationStoreMock.Object);
+
+            manager.StartMonitor();
+            manager.StopMonitor();
+
+            Assert.IsFalse(manager.IsMonitoring);
         }
 
         [TestMethod]
@@ -64,10 +105,10 @@ namespace Appconfi.Test
             };
 
             //Given a version
-            configurationStoreMock.Setup(x => x.GetVersionAsync()).Returns(Task.FromResult("1"));
+            configurationStoreMock.Setup(x => x.GetVersion()).Returns("1");
 
             //And given a valid configuration
-            configurationStoreMock.Setup(x => x.GetConfigurationAsync()).Returns(Task.FromResult(configuration));
+            configurationStoreMock.Setup(x => x.GetConfiguration()).Returns(configuration);
 
             var manager = new AppconfiManager(configurationStoreMock.Object);
             var isEnabled = manager.IsFeatureEnabled("feature.toggle");
@@ -81,11 +122,11 @@ namespace Appconfi.Test
         {
             var configurationStoreMock = new Mock<IConfigurationStore>();
             var configuration = new ApplicationConfiguration();
-            
+
             //Given a version
-            configurationStoreMock.Setup(x => x.GetVersionAsync()).Returns(Task.FromResult("1"));
+            configurationStoreMock.Setup(x => x.GetVersion()).Returns("1");
             //And given a cache
-            Func<string,bool> cache = (key) => key == "feature.toggle";
+            Func<string, bool> cache = (key) => key == "feature.toggle";
 
             var manager = new AppconfiManager(configurationStoreMock.Object, TimeSpan.FromSeconds(1), null, cache);
             var isEnabled = manager.IsFeatureEnabled("feature.toggle");
@@ -100,14 +141,14 @@ namespace Appconfi.Test
             var configuration = new ApplicationConfiguration();
 
             //Given a version
-            configurationStoreMock.Setup(x => x.GetVersionAsync()).Returns(Task.FromResult("1"));
+            configurationStoreMock.Setup(x => x.GetVersion()).Returns("1");
             //And given a cache
-            Func<string, string> cache = (key) => key == "cache-setting"? "value": "invalid";
+            Func<string, string> cache = (key) => key == "cache-setting" ? "value" : "invalid";
 
             var manager = new AppconfiManager(configurationStoreMock.Object, TimeSpan.FromSeconds(1), cache, null);
             var value = manager.GetSetting("cache-setting");
 
-            Assert.AreEqual("value",value);
+            Assert.AreEqual("value", value);
         }
     }
 }
