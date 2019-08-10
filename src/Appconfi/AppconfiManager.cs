@@ -29,7 +29,7 @@
            Func<string, string> getLocalSetting,
            Func<string, bool> getLocalToggle,
            ILogger logger
-          ) 
+          )
         {
             this.logger = logger;
             this.getLocalSetting = getLocalSetting;
@@ -55,9 +55,9 @@
 
         public AppconfiManager(
             IConfigurationStore store,
-            TimeSpan interval): this(store,interval,null, null,null)
+            TimeSpan interval) : this(store, interval, null, null, null)
         {
-            
+
         }
 
         /// <summary>
@@ -166,13 +166,34 @@
                 cacheLock.EnterReadLock();
 
                 if (togglesCache != null && togglesCache.TryGetValue(feature, out string sv))
-                    value = sv == "on";
+                    value = FeatureToggle.IsEnabled(sv);
                 else
                     TryGetToggleValueFromLocal(feature, out value);
             }
             finally
             {
                 cacheLock.ExitReadLock();
+            }
+
+            return value;
+        }
+
+        /// <summary>
+        /// Check if a feature is enabled for an specific user
+        /// </summary>
+        public bool IsFeatureEnabled(string feature, User user, bool defaultValue = false)
+        {
+            if (string.IsNullOrEmpty(feature))
+                throw new ArgumentNullException(nameof(feature), "Value cannot be null or empty.");
+
+            bool value = defaultValue;
+
+            try
+            {
+                value = store.IsUserTarget(feature, user);
+            }
+            finally
+            {
             }
 
             return value;
@@ -203,7 +224,7 @@
 
         public void ForceRefresh()
         {
-           CheckForConfigurationChanges(forceRefresh: true);
+            CheckForConfigurationChanges(forceRefresh: true);
         }
 
         private void CheckForConfigurationChanges(bool forceRefresh = false)
@@ -217,8 +238,8 @@
                 //If the cache is still good 
                 if (!forceRefresh && DateTime.UtcNow.Add(-interval) < lastTimeUpdated)
                     return;
-                
-                var latestVersion =  store.GetVersion();
+
+                var latestVersion = store.GetVersion();
                 lastTimeUpdated = DateTime.UtcNow;
 
                 // If the versions are the same, nothing has changed in the configuration.
@@ -233,7 +254,7 @@
                     cacheLock.EnterWriteLock();
 
                     settingsCache = latestConfiguration?.Settings;
-                    
+
                     togglesCache = latestConfiguration?.Toggles;
                 }
                 finally
@@ -244,7 +265,7 @@
                 currentVersion = latestVersion;
 
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 if (logger != null)
                     logger.Error(e);

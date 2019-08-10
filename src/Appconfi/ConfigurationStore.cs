@@ -24,6 +24,17 @@
             return config;
         }
 
+        public bool IsUserTarget(string featureToggle, User user)
+        {
+            var resource = "api/v1/user_targeting";
+            var request = client.PrepareRequest(resource);
+
+            request = $"{request}&toggle={featureToggle}&user={user.ToString()}";
+
+            var result = client.Execute(request);
+            return FeatureToggle.IsEnabled(result);
+        }
+
         ApplicationConfiguration DeserializeConfiguration(string json)
         {
             var contract = new ApplicationConfiguration();

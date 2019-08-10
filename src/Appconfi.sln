@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Appconfi.Test", "Appconfi.T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Appconfi.Web.Example", "Appconfi.Web.Example\Appconfi.Web.Example.csproj", "{8583E801-4B09-4004-A61D-72C693D8ED93}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample", "Sample", "{F0BB15C6-EAE2-4DD2-83CC-5ECE090BABC8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,6 +38,10 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{31AB1C9B-A35E-4E70-9FD2-83F6DFF32B37} = {F0BB15C6-EAE2-4DD2-83CC-5ECE090BABC8}
+		{8583E801-4B09-4004-A61D-72C693D8ED93} = {F0BB15C6-EAE2-4DD2-83CC-5ECE090BABC8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C426DE86-1A29-4AF4-A6E5-6AFD08F9ABFD}

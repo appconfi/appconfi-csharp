@@ -5,5 +5,7 @@
         string GetVersion();
 
         ApplicationConfiguration GetConfiguration();
+
+        bool IsUserTarget(string featureToggle, User user);
     }
 }
