@@ -7,11 +7,12 @@
     {
         static void Main(string[] args)
         {
-            var applicationId = "dc97d669-1460-4602-8ae3-2a35b2708df71";
-            var apiKey = "a7822a44-af94-4f0c-9337-7c31f2fe33af";
-            var env = "[default]";
+            var applicationId = "530cfb60-da0a-491b-bad8-ff7122100bc1";
+            var apiKey = "655759a7573e480f9d727ddf5ae31264";
+            var env = "ES";
 
             var manager = Configuration.NewInstance(
+                new Uri("https://localhost:5001"),
                 applicationId, 
                 apiKey, 
                 env, 
@@ -22,14 +23,14 @@
 
             var task = Task.Factory.StartNew(() =>
             {
-                CheckSetting(manager).Wait();
+                Watch(manager).Wait();
 
             }, TaskCreationOptions.LongRunning);
 
             Task.WaitAll(task);
         }
 
-        public static async Task CheckSetting(AppconfiManager manager)
+        public static async Task Watch(AppconfiManager manager)
         {
             while (true)
             {
@@ -38,7 +39,7 @@
 
                 Console.WriteLine($"is_enabled: {status.ToString().ToLower()}");
                 Console.WriteLine($"color: {color}");
-
+                manager.ForceRefresh();
                 await Task.Delay(10000);
             }
         }

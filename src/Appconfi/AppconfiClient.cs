@@ -5,7 +5,17 @@ namespace Appconfi
 {
     public class AppconfiClient
     {
-        private static Uri APIUri = new Uri("https://appconfi.com");
+        public static Uri AppconfiBaseURI = new Uri("https://appconfi.com");
+        private Uri baseUri = AppconfiBaseURI;
+
+        public AppconfiClient(
+            Uri baseAddress,
+            string applicationId,
+            string apiKey,
+            string environment = "[default]"):this(applicationId, apiKey,environment)
+        {
+            baseUri = baseAddress;
+        }
 
         public AppconfiClient(
             string applicationId,
@@ -35,7 +45,7 @@ namespace Appconfi
             {
                 client.Timeout = TimeSpan.FromSeconds(30);
                 client.DefaultRequestHeaders.Add("X-Appconfi-UA", "AppConfi-Client .NET v1");
-                client.BaseAddress = APIUri;
+                client.BaseAddress = baseUri;
 
                 var response = client.GetAsync(resource).Result;
 

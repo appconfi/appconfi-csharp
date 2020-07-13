@@ -1,15 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.168
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30204.135
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Appconfi", "Appconfi\Appconfi.csproj", "{EBEC37D2-545A-4F62-9CA6-35BD00F89C6E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Appconfi.Example", "Appconfi.Example\Appconfi.Example.csproj", "{31AB1C9B-A35E-4E70-9FD2-83F6DFF32B37}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Appconfi.Test", "Appconfi.Test\Appconfi.Test.csproj", "{A2F700A3-B5B6-4140-BEFB-F98C24B0685B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Appconfi.Web.Example", "Appconfi.Web.Example\Appconfi.Web.Example.csproj", "{8583E801-4B09-4004-A61D-72C693D8ED93}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +27,6 @@ Global
 		{A2F700A3-B5B6-4140-BEFB-F98C24B0685B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A2F700A3-B5B6-4140-BEFB-F98C24B0685B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A2F700A3-B5B6-4140-BEFB-F98C24B0685B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8583E801-4B09-4004-A61D-72C693D8ED93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8583E801-4B09-4004-A61D-72C693D8ED93}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8583E801-4B09-4004-A61D-72C693D8ED93}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8583E801-4B09-4004-A61D-72C693D8ED93}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
