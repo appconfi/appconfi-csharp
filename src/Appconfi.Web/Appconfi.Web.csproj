@@ -8,14 +8,16 @@
     <Company>Appconfi</Company>
     <Copyright>Copyright © Appconfi 2020</Copyright>
     <RepositoryUrl>https://github.com/appconfi/appconfi-csharp</RepositoryUrl>
+	<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageReleaseNotes>
-      Version 1.2.0
+      Version 1.2.1
       * Adding web extensions
     </PackageReleaseNotes>
+	<PackageTags>appconfi config configuration cloudconfiguration appconficlient featureflags featuretoggle featureswitch</PackageTags>
+    <Description>With Appconfi you can instantly change an application setting without introducing any latency to your site. Is as a configuration service that lets you manage your features and configurations without actually deploying new code.</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.5" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.5" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
