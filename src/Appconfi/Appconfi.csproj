@@ -2,29 +2,29 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-	<PackageId>Appconfi</PackageId>
-	<Version>1.1.0</Version>
-	<Authors>Appconfi's Team</Authors>
-	<Company>Appconfi</Company>
-	<RepositoryUrl>https://github.com/appconfi/appconfi-csharp</RepositoryUrl>
-	<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-	<Copyright>Copyright © Appconfi 2019</Copyright> 
-	<PackageReleaseNotes>
-    Version 1.0.3
-    * Allow change base address
-    Version 1.0.2
-    * Remove NewtonSoft
-    Version 1.0.1
-    * Implement Force Refresh
-    Version 1.0.0
-    * Initial release
-  </PackageReleaseNotes>  
-	<PackageTags>appconfi config configuration cloudconfiguration appconficlient featureflags featuretoggle featureswitch</PackageTags>    
-    <Description>With Appconfi you can instantly change an application setting without introducing any latency to your site. Is as a configuration service that lets you manage your features and configurations without actually deploying new code.</Description>   	 
+    <PackageId>Appconfi</PackageId>
+    <Version>1.2.0</Version>
+    <Authors>Appconfi's Team</Authors>
+    <Company>Appconfi</Company>
+    <RepositoryUrl>https://github.com/appconfi/appconfi-csharp</RepositoryUrl>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <Copyright>Copyright © Appconfi 2019</Copyright>
+    <PackageReleaseNotes>
+      Version 1.0.3
+      * Allow change base address
+      Version 1.0.2
+      * Remove NewtonSoft
+      Version 1.0.1
+      * Implement Force Refresh
+      Version 1.0.0
+      * Initial release
+    </PackageReleaseNotes>
+    <PackageTags>appconfi config configuration cloudconfiguration appconficlient featureflags featuretoggle featureswitch</PackageTags>
+    <Description>With Appconfi you can instantly change an application setting without introducing any latency to your site. Is as a configuration service that lets you manage your features and configurations without actually deploying new code.</Description>
   </PropertyGroup>
 
   <ItemGroup>
-	<None Include="LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)" />
+    <None Include="LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)" />
   </ItemGroup>
 
 </Project>
