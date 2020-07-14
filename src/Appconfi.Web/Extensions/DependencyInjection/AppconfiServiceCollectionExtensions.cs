@@ -2,8 +2,6 @@
 using System;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.FileProviders;
 
 namespace Appconfi.Web.Extensions.DependencyInjection
 {

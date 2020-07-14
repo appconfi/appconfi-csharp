@@ -16,7 +16,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Appconfi.Web\Appconfi.Web.csproj" />
-    <ProjectReference Include="..\Appconfi\Appconfi.csproj" />
   </ItemGroup>
 
 
