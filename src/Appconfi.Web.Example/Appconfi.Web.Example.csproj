@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Remove="features.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="features.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Appconfi.Web\Appconfi.Web.csproj" />
+    <ProjectReference Include="..\Appconfi\Appconfi.csproj" />
+  </ItemGroup>
+
+
+</Project>
