@@ -27,12 +27,11 @@ namespace Appconfi.Web.Example
         {
             services.AddControllers();
             services.AddAppconfi(options => {
-                options.Application = "530cfb60-da0a-491b-bad8-ff7122100bc1";
-                options.Key = "655759a7573e480f9d727ddf5ae31264";
-                options.Environment = "ES";
-                options.BaseAddress = "https://localhost:5001";
+                options.Application = "<here>";
+                options.Key = "<here>";
+                options.Environment = "<here>";
+                options.BaseAddress = "<here>";
                 options.CacheExpirationTime = TimeSpan.FromMinutes(1);
-                options.UseFeatureToggleCache(typeof(Startup).Assembly, "features.json");               
             });
         }
 

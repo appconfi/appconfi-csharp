@@ -15,7 +15,7 @@
 
         public ApplicationConfiguration GetConfiguration()
         {
-            var resource = "api/v1/configurations";
+            var resource = "api/v1/config";
             var request = client.PrepareRequest(resource);
 
             var result = client.Execute(request);
@@ -41,7 +41,7 @@
 
         public string GetVersion()
         {
-            var resource = "api/v1/configurations/version";
+            var resource = "api/v1/config/version";
             var request = client.PrepareRequest(resource);
 
             var result = client.Execute(request);

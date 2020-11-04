@@ -118,35 +118,31 @@ namespace Appconfi.Test
         }
 
         [TestMethod]
-        public void AppconfiManager_IsFeatureEnabled_ValidKey_ReturnFromCache()
+        public void AppconfiManager_IsFeatureEnabled_ValidKey_ReturnFromDefault()
         {
             var configurationStoreMock = new Mock<IConfigurationStore>();
             var configuration = new ApplicationConfiguration();
 
             //Given a version
             configurationStoreMock.Setup(x => x.GetVersion()).Returns("1");
-            //And given a cache
-            Func<string, bool> cache = (key) => key == "feature.toggle";
 
-            var manager = new AppconfiManager(configurationStoreMock.Object, TimeSpan.FromSeconds(1), null, cache);
-            var isEnabled = manager.IsFeatureEnabled("feature.toggle");
+            var manager = new AppconfiManager(configurationStoreMock.Object, TimeSpan.FromSeconds(1));
+            var isEnabled = manager.IsFeatureEnabled("feature.toggle", true);
 
             Assert.IsTrue(isEnabled);
         }
 
         [TestMethod]
-        public void AppconfiManager_GetSetting_ValidKey_ReturnFromCache()
+        public void AppconfiManager_GetSetting_ValidKey_ReturnFromDefault()
         {
             var configurationStoreMock = new Mock<IConfigurationStore>();
             var configuration = new ApplicationConfiguration();
 
             //Given a version
             configurationStoreMock.Setup(x => x.GetVersion()).Returns("1");
-            //And given a cache
-            Func<string, string> cache = (key) => key == "cache-setting" ? "value" : "invalid";
 
-            var manager = new AppconfiManager(configurationStoreMock.Object, TimeSpan.FromSeconds(1), cache, null);
-            var value = manager.GetSetting("cache-setting");
+            var manager = new AppconfiManager(configurationStoreMock.Object, TimeSpan.FromSeconds(1));
+            var value = manager.GetSetting("cache-setting", "value");
 
             Assert.AreEqual("value", value);
         }

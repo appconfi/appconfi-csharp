@@ -2,11 +2,11 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Threading;
 
     public class AppconfiManager : IDisposable, IConfigurationManager
     {
+        private const string FEATURE_ON = "on";
         private readonly IConfigurationStore store;
         readonly TimeSpan interval;
         private bool monitoring;
@@ -18,8 +18,6 @@
         IDictionary<string, string> settingsCache;
         IDictionary<string, string> togglesCache;
 
-        Func<string, string> getLocalSetting;
-        Func<string, bool> getLocalToggle;
         private readonly ILogger logger;
         string currentVersion;
         DateTime lastTimeUpdated;
@@ -27,25 +25,12 @@
         public AppconfiManager(
            IConfigurationStore store,
            TimeSpan interval,
-           Func<string, string> getLocalSetting,
-           Func<string, bool> getLocalToggle,
            ILogger logger
           ) 
         {
             this.logger = logger;
-            this.getLocalSetting = getLocalSetting;
-            this.getLocalToggle = getLocalToggle;
             this.store = store;
             this.interval = interval;
-        }
-
-        public AppconfiManager(
-            IConfigurationStore store,
-            TimeSpan interval,
-            Func<string, string> getLocalSetting,
-            Func<string, bool> getLocalToggle
-           ) : this(store, interval, getLocalSetting, getLocalToggle, null)
-        {
         }
 
         public AppconfiManager(
@@ -56,7 +41,7 @@
 
         public AppconfiManager(
             IConfigurationStore store,
-            TimeSpan interval): this(store,interval,null, null,null)
+            TimeSpan interval): this(store,interval,null)
         {
             
         }
@@ -123,7 +108,7 @@
         /// </summary>
         /// <param name="setting"></param>
         /// <returns></returns>
-        public string GetSetting(string setting)
+        public string GetSetting(string setting, string defaultValue = null)
         {
             CheckForConfigurationChanges();
 
@@ -137,7 +122,7 @@
 
                 if (settingsCache == null || !settingsCache.TryGetValue(setting, out value))
                 {
-                    TryGetSettingValueFromLocal(setting, out value);
+                    value = defaultValue;
                 }
             }
             finally
@@ -153,7 +138,7 @@
         /// </summary>
         /// <param name="feature"></param>
         /// <returns></returns>
-        public bool IsFeatureEnabled(string feature)
+        public bool IsFeatureEnabled(string feature, bool defaultValue= false)
         {
             CheckForConfigurationChanges();
 
@@ -167,9 +152,9 @@
                 cacheLock.EnterReadLock();
 
                 if (togglesCache != null && togglesCache.TryGetValue(feature, out string sv))
-                    value = sv == "on";
+                    value = sv == FEATURE_ON;
                 else
-                    TryGetToggleValueFromLocal(feature, out value);
+                    value = defaultValue;
             }
             finally
             {
@@ -177,29 +162,6 @@
             }
 
             return value;
-        }
-
-        private bool TryGetSettingValueFromLocal(string key, out string value)
-        {
-            value = null;
-
-            if (getLocalSetting == null)
-                return false;
-
-            value = getLocalSetting(key);
-            return !string.IsNullOrEmpty(value);
-        }
-
-        private bool TryGetToggleValueFromLocal(string key, out bool value)
-        {
-            value = false;
-
-            if (getLocalToggle == null)
-                return false;
-
-            value = getLocalToggle(key);
-
-            return true;
         }
 
         public void ForceRefresh()

@@ -7,12 +7,12 @@
     {
         static void Main(string[] args)
         {
-            var applicationId = "530cfb60-da0a-491b-bad8-ff7122100bc1";
-            var apiKey = "655759a7573e480f9d727ddf5ae31264";
-            var env = "ES";
+            var applicationId = "<here>";
+            var apiKey = "<here>";
+            var env = "[default]";
 
             var manager = Configuration.NewInstance(
-                new Uri("https://localhost:5001"),
+                new Uri("<here>"),
                 applicationId, 
                 apiKey, 
                 env, 

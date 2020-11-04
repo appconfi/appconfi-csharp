@@ -16,9 +16,9 @@ namespace Appconfi.Web.Example.Controllers
         };
 
         private readonly ILogger<WeatherForecastController> _logger;
-        private readonly IFeatureManager _featureManager;
+        private readonly IAppconfiFeatureManager _featureManager;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger, IFeatureManager featureManager)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, IAppconfiFeatureManager featureManager)
         {
             _logger = logger;
             _featureManager = featureManager;
@@ -27,8 +27,10 @@ namespace Appconfi.Web.Example.Controllers
         [HttpGet]
         public IEnumerable<WeatherForecast> Get()
         {
-            if (!_featureManager.IsEnabled("feature.a"))
-                return null;
+            if (!_featureManager.IsEnabled("awesome_feature"))
+                return Enumerable.Empty<WeatherForecast>() ;
+
+
 
             var rng = new Random();
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast

@@ -1,6 +1,6 @@
 # Appconfi
 
-[Appconfi](https://www.appconfi.com) - Service to centrally manage application settings and feature toggles for applications and services.
+[Appconfi] - Service to centrally manage application settings and feature toggles for applications and services.
 
 ## Installation
 
@@ -12,7 +12,7 @@ More info is available on [nuget](https://www.nuget.org/packages/Appconfi/)
 
 ## Usage
 
-In order to use the Appconfi you will need to [create an account](https://appconfi.com/account/register).
+In order to use the Appconfi you will need to deploy an appconfi server and `/account/register`.
 
 From there you can create your first application and setup your configuration. To use the Appconfi API to access your configuration go to `/accesskeys` there you can find the `application_id` and your `application_key`.
 
@@ -41,6 +41,3 @@ var refreshInterval =  TimeSpan.FromMinutes(1);
 var manager = Configuration.NewInstance(applicationId, apiKey, env, refreshInterval);
 ```
 
-## Links
-
- * [Web](https://appconfi.com)

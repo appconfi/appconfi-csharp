@@ -3,13 +3,16 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <PackageId>Appconfi.Web</PackageId>
-    <Version>1.2.0</Version>
+    <Version>1.3.0</Version>
     <Authors>Appconfi's Team</Authors>
     <Company>Appconfi</Company>
     <Copyright>Copyright © Appconfi 2020</Copyright>
     <RepositoryUrl>https://github.com/appconfi/appconfi-csharp</RepositoryUrl>
 	<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageReleaseNotes>
+      Version 1.3.0
+      * Remove cache function
+      * Simplify logic
       Version 1.2.1
       * Adding web extensions
     </PackageReleaseNotes>

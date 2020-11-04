@@ -36,7 +36,7 @@ namespace Appconfi
             queryString["env"] = Environment;
             queryString["app"] = ApplicationId;
 
-            return $"{resource}?{queryString.ToString()}";
+            return $"{resource}?{queryString}";
         }
 
         public string Execute(string resource)
