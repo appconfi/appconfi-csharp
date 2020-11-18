@@ -3,7 +3,7 @@
     public interface IAppconfiFeatureManager
     {
         void ForceRefresh();
-        bool IsEnabled(string featureName, bool defaultValue = false);
-        bool IsEnabled(string featureName, User user, bool defaultValue = false);
+        bool IsEnabled(string feature, bool defaultValue = false);
+        bool IsEnabled(string feature, User user, bool defaultValue = false);
     }
 }

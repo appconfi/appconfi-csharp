@@ -7,12 +7,12 @@
     {
         static void Main(string[] args)
         {
-            var applicationId = "03248339-139a-40e0-98db-46cc9d924362";
-            var apiKey = "d7033c4f938b4895bb92f364175d12c8";
-            var env = "prd";
+            var applicationId = "";
+            var apiKey = "";
+            var env = "";
 
             var manager = Configuration.NewInstance(
-                new Uri("https://localhost:44389"),
+                new Uri(""),
                 applicationId, 
                 apiKey, 
                 env, 
@@ -34,12 +34,7 @@
         {
             while (true)
             {
-                //var status = manager.IsFeatureEnabled("ale_feature");
-                //var status = manager.IsFeatureEnabled("simple feature on");
-                //var status = manager.IsFeatureEnabled("my_other_feature", new User("123") { { "country", "MX" } });
                 var status = manager.IsFeatureEnabled("new_feature", new User("123") { { "country", "MX" } });
-
-
                 Console.WriteLine($"is_enabled: {status.ToString().ToLower()}");
                 manager.ForceRefresh();
                 await Task.Delay(5000);
