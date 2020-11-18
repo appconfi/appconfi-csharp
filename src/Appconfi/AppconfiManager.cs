@@ -4,9 +4,8 @@
     using System.Collections.Generic;
     using System.Threading;
 
-    public class AppconfiManager : IDisposable, IConfigurationManager
+    public class AppconfiManager : AppconfiManagerBase, IDisposable, IConfigurationManager
     {
-        private const string FEATURE_ON = "on";
         private readonly IConfigurationStore store;
         readonly TimeSpan interval;
         private bool monitoring;
@@ -15,8 +14,7 @@
         readonly ReaderWriterLockSlim cacheLock = new ReaderWriterLockSlim();
         readonly SemaphoreSlim syncCacheSemaphore = new SemaphoreSlim(1);
 
-        IDictionary<string, string> settingsCache;
-        IDictionary<string, string> togglesCache;
+        IDictionary<string, dynamic> featuresCache;
 
         private readonly ILogger logger;
         string currentVersion;
@@ -44,6 +42,15 @@
             TimeSpan interval): this(store,interval,null)
         {
             
+        }
+
+        public static IConfigurationManager FromJson(string json)
+        {
+            if (string.IsNullOrEmpty(json))
+                throw new ArgumentNullException(nameof(json));
+
+            return new LocalAppconfiManager(json);
+
         }
 
         /// <summary>
@@ -103,27 +110,22 @@
             syncCacheSemaphore.Dispose();
         }
 
-        /// <summary>
-        /// Retrieve application setting from the local cache. Cloud configuration override local cache
-        /// </summary>
-        /// <param name="setting"></param>
-        /// <returns></returns>
-        public string GetSetting(string setting, string defaultValue = null)
+       
+        public bool IsFeatureEnabled(string feature, bool defaultValue= false)
         {
+            if (string.IsNullOrEmpty(feature))
+                throw new ArgumentNullException(nameof(feature), "Value cannot be null or empty.");
+            
             CheckForConfigurationChanges();
 
-            if (string.IsNullOrEmpty(setting))
-                throw new ArgumentNullException(nameof(setting), "Value cannot be null or empty.");
+            bool value = defaultValue;
 
-            string value;
             try
             {
                 cacheLock.EnterReadLock();
 
-                if (settingsCache == null || !settingsCache.TryGetValue(setting, out value))
-                {
-                    value = defaultValue;
-                }
+                if (featuresCache != null && featuresCache.TryGetValue(feature, out object status))
+                    value = IsEnabled(status, defaultValue);
             }
             finally
             {
@@ -133,17 +135,15 @@
             return value;
         }
 
-        /// <summary>
-        /// Retrieve application feature toggle from the local cache.
-        /// </summary>
-        /// <param name="feature"></param>
-        /// <returns></returns>
-        public bool IsFeatureEnabled(string feature, bool defaultValue= false)
+        public bool IsFeatureEnabled(string feature, User user, bool defaultValue = false)
         {
-            CheckForConfigurationChanges();
-
             if (string.IsNullOrEmpty(feature))
                 throw new ArgumentNullException(nameof(feature), "Value cannot be null or empty.");
+
+            if(user == null)
+                throw new ArgumentNullException(nameof(feature), "Invalid user.");
+
+            CheckForConfigurationChanges();
 
             bool value = false;
 
@@ -151,8 +151,8 @@
             {
                 cacheLock.EnterReadLock();
 
-                if (togglesCache != null && togglesCache.TryGetValue(feature, out string sv))
-                    value = sv == FEATURE_ON;
+                if (featuresCache != null && featuresCache.TryGetValue(feature, out object status))
+                    value = IsEnabled(status, user, defaultValue);
                 else
                     value = defaultValue;
             }
@@ -188,16 +188,14 @@
                 if (currentVersion == latestVersion) return;
 
                 // Get the latest settings from the settings store and publish changes.
-                var latestConfiguration = store.GetConfiguration();
+                var latestFeatures = store.GetFeatures();
 
                 // Refresh the settings cache.
                 try
                 {
                     cacheLock.EnterWriteLock();
 
-                    settingsCache = latestConfiguration?.Settings;
-                    
-                    togglesCache = latestConfiguration?.Toggles;
+                    featuresCache = latestFeatures;
                 }
                 finally
                 {
@@ -213,6 +211,5 @@
                     logger.Error(e);
             }
         }
-
     }
 }

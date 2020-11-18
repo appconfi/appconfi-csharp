@@ -1,11 +1,15 @@
-﻿namespace Appconfi
-{
-    using System.IO;
-    using System.Runtime.Serialization.Json;
-    using System.Text;
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Runtime.Serialization.Json;
+using System.Text;
 
+namespace Appconfi
+{
     public class ConfigurationStore : IConfigurationStore
     {
+        private const string ROUTE = "api/v1/features";
         private readonly AppconfiClient client;
 
         public ConfigurationStore(AppconfiClient client)
@@ -13,35 +17,29 @@
             this.client = client;
         }
 
-        public ApplicationConfiguration GetConfiguration()
+        public Dictionary<string, dynamic> GetFeatures()
         {
-            var resource = "api/v1/config";
+            var resource = ROUTE;
             var request = client.PrepareRequest(resource);
 
             var result = client.Execute(request);
-            var config = DeserializeConfiguration(result);
+            var config = Deserialize(result);
 
             return config;
         }
 
-        ApplicationConfiguration DeserializeConfiguration(string json)
+        public static Dictionary<string, dynamic> Deserialize(string json)
         {
-            var contract = new ApplicationConfiguration();
-            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(json)))
-            {
-                var ser = new DataContractJsonSerializer(contract.GetType(), new DataContractJsonSerializerSettings()
-                {
-                    UseSimpleDictionaryFormat = true
-                });
-                contract = ser.ReadObject(ms) as ApplicationConfiguration;
-            }
+            if (string.IsNullOrEmpty(json))
+                throw new ArgumentNullException(nameof(json));
 
-            return contract;
+            var result = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(json);
+            return result;
         }
 
         public string GetVersion()
         {
-            var resource = "api/v1/config/version";
+            var resource = $"{ROUTE}/version";
             var request = client.PrepareRequest(resource);
 
             var result = client.Execute(request);

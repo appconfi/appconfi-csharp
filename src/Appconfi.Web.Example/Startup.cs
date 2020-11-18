@@ -27,10 +27,10 @@ namespace Appconfi.Web.Example
         {
             services.AddControllers();
             services.AddAppconfi(options => {
-                options.Application = "<here>";
-                options.Key = "<here>";
-                options.Environment = "<here>";
-                options.BaseAddress = "<here>";
+                options.Application = "a8a4eae9-e0c4-48cb-99d3-014b2d378cea";
+                options.Key = "7dd6c4210b624f349b0b1057e5f6538a";
+                options.Environment = "PL";
+                options.BaseAddress = "https://tst-appconfi.azurewebsites.net";
                 options.CacheExpirationTime = TimeSpan.FromMinutes(1);
             });
         }

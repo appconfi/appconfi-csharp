@@ -1,9 +1,11 @@
-﻿namespace Appconfi
+﻿using System.Collections.Generic;
+
+namespace Appconfi
 {
     public interface IConfigurationStore
     {
         string GetVersion();
 
-        ApplicationConfiguration GetConfiguration();
+        Dictionary<string, dynamic> GetFeatures();
     }
 }

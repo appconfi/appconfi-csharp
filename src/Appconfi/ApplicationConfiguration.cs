@@ -4,13 +4,8 @@
     using System.Runtime.Serialization;
 
     [DataContract]
-    public class ApplicationConfiguration
+    public class ApplicationConfiguration : Dictionary<string, object>
     {
-        [DataMember(Name = "settings")]
-        public IDictionary<string,string> Settings { get; set; }
-
-        [DataMember(Name = "toggles")]
-        public IDictionary<string,string> Toggles { get; set; }
     }
 
 }

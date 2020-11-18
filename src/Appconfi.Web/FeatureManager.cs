@@ -17,5 +17,10 @@
         {
             manager.ForceRefresh();
         }
+
+        public bool IsEnabled(string featureName, User user, bool defaultValue = false)
+        {
+            return manager.IsFeatureEnabled(featureName, user, defaultValue);
+        }
     }
 }

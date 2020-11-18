@@ -27,7 +27,7 @@ namespace Appconfi.Web.Example.Controllers
         [HttpGet]
         public IEnumerable<WeatherForecast> Get()
         {
-            if (!_featureManager.IsEnabled("awesome_feature"))
+            if (!_featureManager.IsEnabled("FeatureToggle.AdvanceAppointmentsActive"))
                 return Enumerable.Empty<WeatherForecast>() ;
 
 

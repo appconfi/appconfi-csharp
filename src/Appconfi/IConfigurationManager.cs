@@ -3,17 +3,18 @@
     public interface IConfigurationManager
     {
         /// <summary>
-        /// Get the settings for a given environment
+        /// Determines whether a feature is enabled
         /// </summary>
-        /// <param name="key">Setting name</param>
-        /// <returns>Value for the given setting</returns>
-        string GetSetting(string key, string defaultValue = null);
+        /// <param name="feature">Feature name</param>
+        /// <returns>If the feature is enabled</returns>
+        bool IsFeatureEnabled(string feature, bool defaultValue = false);
 
         /// <summary>
-        /// Determines whether a feature test is enabled for a given environment
+        /// Determines whether a feature is enabled for a given user
         /// </summary>
-        /// <param name="key">Feature name</param>
-        /// <returns>If the feature toggle is enabled</returns>
-        bool IsFeatureEnabled(string key, bool defaultValue = false);
+        /// <param name="feature">Feature name</param>
+        /// <param name="user">User</param>
+        /// <returns>If the feature is enabled</returns>
+        bool IsFeatureEnabled(string feature, User user, bool defaultValue = false);
     }
 }
