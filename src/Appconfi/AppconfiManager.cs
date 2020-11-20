@@ -24,7 +24,7 @@
            IConfigurationStore store,
            TimeSpan interval,
            ILogger logger
-          ) 
+          )
         {
             this.logger = logger;
             this.store = store;
@@ -39,9 +39,9 @@
 
         public AppconfiManager(
             IConfigurationStore store,
-            TimeSpan interval): this(store,interval,null)
+            TimeSpan interval) : this(store, interval, null)
         {
-            
+
         }
 
         public static IConfigurationManager FromJson(string json)
@@ -110,12 +110,12 @@
             syncCacheSemaphore.Dispose();
         }
 
-       
-        public bool IsFeatureEnabled(string feature, bool defaultValue= false)
+
+        public bool IsFeatureEnabled(string feature, bool defaultValue = false)
         {
             if (string.IsNullOrEmpty(feature))
                 throw new ArgumentNullException(nameof(feature), "Value cannot be null or empty.");
-            
+
             CheckForConfigurationChanges();
 
             bool value = defaultValue;
@@ -140,7 +140,7 @@
             if (string.IsNullOrEmpty(feature))
                 throw new ArgumentNullException(nameof(feature), "Value cannot be null or empty.");
 
-            if(user == null)
+            if (user == null)
                 throw new ArgumentNullException(nameof(feature), "Invalid user.");
 
             CheckForConfigurationChanges();
@@ -166,7 +166,7 @@
 
         public void ForceRefresh()
         {
-           CheckForConfigurationChanges(forceRefresh: true);
+            CheckForConfigurationChanges(forceRefresh: true);
         }
 
         private void CheckForConfigurationChanges(bool forceRefresh = false)
@@ -180,8 +180,8 @@
                 //If the cache is still good 
                 if (!forceRefresh && DateTime.UtcNow.Add(-interval) < lastTimeUpdated)
                     return;
-                
-                var latestVersion =  store.GetVersion();
+
+                var latestVersion = store.GetVersion();
                 lastTimeUpdated = DateTime.UtcNow;
 
                 // If the versions are the same, nothing has changed in the configuration.
@@ -205,7 +205,7 @@
                 currentVersion = latestVersion;
 
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 if (logger != null)
                     logger.Error(e);

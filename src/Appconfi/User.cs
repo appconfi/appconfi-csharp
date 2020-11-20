@@ -2,7 +2,7 @@
 
 namespace Appconfi
 {
-    public class User : Dictionary<string,string>
+    public class User : Dictionary<string, string>
     {
         public User(string id)
         {
@@ -46,5 +46,5 @@ namespace Appconfi
             }
             return defaultValue;
         }
-    } 
+    }
 }

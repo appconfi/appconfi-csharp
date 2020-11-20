@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Dynamic;
-
-namespace Appconfi
+﻿namespace Appconfi
 {
     public abstract class AppconfiManagerBase
     {
@@ -12,7 +9,7 @@ namespace Appconfi
                 return isEnabled;
             }
             var property = ((dynamic)status)["isEnabled"];
-            if(property?.Value != null && property.Value.GetType() == typeof(bool))
+            if (property?.Value != null && property.Value.GetType() == typeof(bool))
             {
                 return (bool)property;
             }

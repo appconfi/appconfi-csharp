@@ -12,7 +12,7 @@ namespace Appconfi
             Uri baseAddress,
             string applicationId,
             string apiKey,
-            string environment = "[default]"):this(applicationId, apiKey,environment)
+            string environment = "[default]") : this(applicationId, apiKey, environment)
         {
             baseUri = baseAddress;
         }
